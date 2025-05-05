@@ -1,49 +1,56 @@
 # TextSaver MCP
 
-A Claude MCP (Model Context Protocol) server that allows Claude to save text to files on your local filesystem.
+ローカルファイルシステムにテキストを保存できるようにする、Claude MCP（Model Context Protocol）サーバーです。
 
-## Features
+## 機能
 
-- 📝 Save text input to files with a simple command
-- 🕒 Automatically generates timestamped filenames if none provided
-- 🔒 Built-in security with filename validation and sanitization
-- 🚫 Protection against directory traversal attacks
-- ⚠️ Comprehensive error handling and logging
-- ✅ Size limit protections to prevent filesystem abuse
+- 📝 シンプルなコマンドでテキスト入力をファイルに保存
+- 🕒 ファイル名が指定されていない場合、自動的にタイムスタンプ付きのファイル名を生成
+- 🔒 ファイル名の検証とサニタイズによる組み込みセキュリティ
+- 🚫 ディレクトリトラバーサル攻撃からの保護
+- ⚠️ 包括的なエラー処理とロギング
+- ✅ ファイルシステムの乱用を防ぐサイズ制限保護
 
-## Installation
+## インストール
 
-### Prerequisites
+### 前提条件
 
-- Python 3.8 or higher
-- Claude Desktop application
+- Python 3.8以上
+- Claude Desktopアプリケーション
 
-### Setup
+### セットアップ
 
-1. Clone this repository:
+1. このリポジトリをクローンします。
 
-2. Install the required dependencies:
-   ```
+2. 必要な依存関係をインストールします:
+   ```bash
    pip install -r requirements.txt
    ```
 
-3. Configure Claude Desktop to use the MCP server:
+3. Claude DesktopでMCPサーバーを使用するよう設定します（macOS）:
+   1. **Claude Desktop アプリを起動**:
+      - アプリケーションフォルダから Claude を起動します。
+   2. **メニューバーから「Settings…」を開く**:
+      - 画面上部のメニューバーで「Claude」→「Settings…」を選択します。  
+      - ※アプリウィンドウ内の「Settings」ではなく、メニューバーの「Settings…」を選んでください。
+   3. **「Developer」タブを開く**:
+      - 左側のサイドバーから「Developer」タブを選択します。
+   4. **「Edit Config」をクリック**:
+      - 「Edit Config」ボタンをクリックすると、`claude_desktop_config.json` ファイルが作成され、デフォルトのテキストエディタで開かれます。
 
-   Open your Claude Desktop configuration file:
-   
-   **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`  
-   **Windows**: `C:\Users\YourUsername\AppData\Roaming\Claude\claude_desktop_config.json`
+      - Claude Desktop設定ファイルを開く:
+        - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
-   Add the following configuration:
+   以下の設定を追加:
    ```json
    {
      "mcpServers": {
        "text-saver": {
-         "command": "/full/path/to/python",
+         "command": "/opt/homebrew/bin/python3", // 例)環境をhomebrewで作成
          "args": [
-           "/full/path/to/text_saver_mcp.py"
+           "/{fullpath}/mcp_sample/text_saver_mcp.py" // プロジェクト内のメインプログラムまでのpathを記載
          ],
-         "cwd": "/path/to/writable/directory",
+         "cwd": "/{fullpath}/mcp_sample", // プロジェクトまでのpathを記載
          "host": "127.0.0.1",
          "port": 8080,
          "timeout": 30000
@@ -52,52 +59,70 @@ A Claude MCP (Model Context Protocol) server that allows Claude to save text to 
    }
    ```
    
-   Be sure to replace the paths with the actual locations on your system.
+   パスをシステム上の実際の場所に置き換えてください。
 
-4. Restart Claude Desktop
+1. Claude Desktopを再起動
 
-## Usage
+## 使用方法
 
-Once set up, you can ask Claude to save text to files using natural language:
+設定が完了したら、自然言語を使用してClaudeにテキストをファイルに保存するよう依頼できます:
 
-- "Save this text to a file"
-- "Save this information to a file called notes.txt"
-- "Write this content to a text file named project-ideas.txt"
+- 「このテキストをファイルに保存して」
+- 「この情報をnotes.txtというファイルに保存して」
+- 「このコンテンツをproject-ideas.txtという名前のテキストファイルに書き込んで」
 
-The text will be saved to the directory specified in the configuration.
+テキストは設定で指定されたディレクトリに保存されます。
 
-## Security Features
+## セキュリティ機能
 
-- **File size limits**: Prevents saving excessively large files (default: 10MB)
-- **Filename validation**: Ensures filenames are safe and don't contain path traversal attempts
-- **Sanitization**: Automatically sanitizes unsafe filenames
-- **Path control**: Files can only be saved in the specified directory
+- **ファイルサイズ制限**: 過度に大きなファイルの保存を防止（デフォルト: 10MB）
+- **ファイル名の検証**: ファイル名が安全でパストラバーサルの試みを含まないことを確認
+- **サニタイズ**: 安全でないファイル名を自動的にサニタイズ
+- **パス制御**: ファイルは指定されたディレクトリにのみ保存可能
 
-## Troubleshooting
+## トラブルシューティング
 
-### Common Issues
+### 一般的な問題
 
-#### "spawn python ENOENT" Error
-This error means Claude can't find the Python executable. Use the full path to your Python interpreter in the configuration file:
+#### "spawn python ENOENT" エラー
+このエラーはClaudeがPython実行ファイルを見つけられないことを意味します。設定ファイルでPythonインタープリタへのフルパスを使用してください:
 
 ```bash
-# Find your Python path
+# Pythonパスを見つける
 which python
 
-# Then use that path in your configuration
+# そのパスを設定で使用
 ```
 
-#### "Read-only file system" Error
-This means the script doesn't have permission to write to the specified directory. Make sure you've set a writable directory in the script or configuration.
+#### "Read-only file system" エラー
+これはスクリプトが指定されたディレクトリに書き込む権限がないことを意味します。スクリプトまたは設定で書き込み可能なディレクトリが設定されていることを確認してください。
 
-#### Permission Issues
-Ensure the directory where you're saving files has appropriate write permissions:
+#### 権限の問題
+ファイルを保存するディレクトリに適切な書き込み権限があることを確認してください:
 
 ```bash
 chmod 755 /path/to/save/directory
 ```
 
-### Debugging
+### デバッグ
 
-The script includes detailed logging to help diagnose issues. Check the logs in the Claude Desktop developer console.
+スクリプトには問題診断に役立つ詳細なロギングが含まれています。Claude Desktopの開発者コンソールでログを確認してください。
 
+### MCP初心者向けの説明:Claudeからこのテキスト保存MCPを呼び出す場合の実行フローについて
+
+  1. 最初の実行：main()関数
+    - スクリプト起動時にmain()関数が実行され、MCPサーバーが初期化されます。
+    - これはMCPサーバーの起動段階で、Claudeからの呼び出しの前に行われます。
+    - mcp.run(transport='stdio')がサーバーを起動し、標準入出力を通じてClaudeと通信できるようにします。
+  2. Claudeからの呼び出し時：save_text()関数
+    - ユーザーがClaudeに「このテキストをファイルに保存して」などと依頼すると、Claudeはsave_text()関数を呼び出します。
+    - この関数は@mcp.tool()デコレータによってMCPツールとして登録されています。
+    - 呼び出し時には通常2つのパラメータが渡されます：
+        - text: 保存するテキスト（必須）
+      - filename: ファイル名（オプション、指定されていない場合はタイムスタンプで自動生成）
+  3. 処理の流れ：
+    - テキストタイプの検証（文字列であることを確認）
+    - テキストサイズの確認（10MB以下であることを確認）
+    - ファイル名の処理（生成または検証・サニタイズ）
+    - ファイルへの書き込み
+    - 成功または失敗のレスポンスの返却
